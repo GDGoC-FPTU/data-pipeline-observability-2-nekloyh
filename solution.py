@@ -2,8 +2,8 @@
 ==============================================================
 Day 10 Lab: Build Your First Automated ETL Pipeline
 ==============================================================
-Student ID: AI20K-XXXX  (<-- Thay XXXX bang ma so cua ban)
-Name: Your Name Here
+Student ID: AI20K-2A202600782  (<-- Thay XXXX bang ma so cua ban)
+Name: Nguyễn Lý Minh Kỳ
 
 Nhiem vu:
    1. Extract:   Doc du lieu tu file JSON
@@ -47,7 +47,14 @@ def extract(file_path):
     #   with open(file_path, 'r') as f:
     #       data = json.load(f)
     #   return data
-    pass
+    try:
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+        # print(f"Extracted {len(data)} records.")
+        return data
+    except FileNotFoundError:
+        print(f"Error: File {file_path} not found.")
+        return []
 
 
 def validate(data):
@@ -71,8 +78,20 @@ def validate(data):
 
     # TODO: Lap qua data, kiem tra tung record
     # Giu lai record hop le, dem record loi
+    valid_records = []
+    error_records = []
+    for record in data:
+        price = record.get('price', 0)
+        category = record.get('category', '')
 
-    print(f"Validation complete. Valid: {len(valid_records)}, Errors: {error_count}")
+        if price > 0 and category:
+            valid_records.append(record)
+        else:
+            error_records.append(record)
+    
+    error_count = len(error_records)
+
+    print(f"Validation summary: {len(valid_records)} kept, {error_count} dropped.")
     return valid_records
 
 
@@ -95,7 +114,22 @@ def transform(data):
         pd.DataFrame: DataFrame da duoc transform
     """
     # TODO: Tao DataFrame va ap dung transformations
-    pass
+    discounted_price = []
+    categories = []
+    processed_at = datetime.datetime.now().isoformat()
+    
+    for record in data:
+        discounted_price.append(record['price'] * 0.9)
+        categories.append(record['category'].title())
+
+
+    # Create DataFrame
+    df = pd.DataFrame(data)
+    df['discounted_price'] = discounted_price
+    df['category'] = categories
+    df['processed_at'] = processed_at
+
+    return df
 
 
 def load(df, output_path):
@@ -106,6 +140,7 @@ def load(df, output_path):
        - df.to_csv(output_path, index=False)
     """
     # TODO: Luu DataFrame ra CSV
+    df.to_csv(output_path, index=False)
     print(f"Data saved to {output_path}")
 
 
